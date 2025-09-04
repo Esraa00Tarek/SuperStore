@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Allow authenticated users to read all collections
+    match /{collection}/{document} {
+      allow read: if request.auth != null;
+    }
+    
+    // User specific rules
+    match /users/{userId} {
+      // Allow public read for username lookups during login
+      allow read: if true;
+      // Only allow users to write their own data
+      allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow looking up users by username
+      match /{document=**} {
+        allow read: if true;
+      }
+    }
+    
+    // Products collection rules
+    match /products/{productId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    // Categories collection rules
+    match /categories/{categoryId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+      
+      // Nested categories for products and crafts
+      match /{nestedCollection}/{nestedDoc} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null;
+      }
+    }
+    
+    // Crafts collection rules
+    match /crafts/{craftId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    // Contacts collection rules
+    match /contacts/{contactId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // WhatsApp numbers
+    match /whatsapp/numbers {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Contact info
+    match /contactInfo/contact {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Business hours
+    match /businessHours/hours {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}

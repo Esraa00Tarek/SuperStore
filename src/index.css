@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Warm community color palette */
+    --background: 42 45% 97%;
+    --foreground: 24 20% 15%;
+
+    --card: 40 50% 98%;
+    --card-foreground: 24 20% 15%;
+
+    --popover: 40 50% 98%;
+    --popover-foreground: 24 20% 15%;
+
+    /* Olive green primary */
+    --primary: 75 25% 45%;
+    --primary-foreground: 42 45% 97%;
+
+    /* Light pink secondary */
+    --secondary: 345 50% 88%;
+    --secondary-foreground: 24 20% 15%;
+
+    /* Beige muted */
+    --muted: 42 30% 92%;
+    --muted-foreground: 24 15% 45%;
+
+    /* Warm beige accent */
+    --accent: 42 35% 90%;
+    --accent-foreground: 24 20% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 42 45% 97%;
+
+    --border: 42 25% 88%;
+    --input: 42 25% 88%;
+    --ring: 75 25% 45%;
+
+    --radius: 1rem;
+
+    /* Community specific colors */
+    --warm-beige: 42 35% 85%;
+    --soft-pink: 345 45% 85%;
+    --gentle-olive: 75 20% 55%;
+    --cream: 42 40% 95%;
+    --terracotta: 15 35% 65%;
+
+    /* Gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(var(--warm-beige)), hsl(var(--cream)));
+    --gradient-community: linear-gradient(135deg, hsl(var(--soft-pink)), hsl(var(--warm-beige)));
+    
+    /* Shadows */
+    --shadow-soft: 0 4px 20px hsl(var(--primary) / 0.1);
+    --shadow-warm: 0 8px 30px hsl(var(--soft-pink) / 0.2);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    background: var(--gradient-warm);
+    min-height: 100vh;
+  }
+
+  /* RTL Support */
+  [dir="rtl"] {
+    direction: rtl;
+  }
+
+  [dir="ltr"] {
+    direction: ltr;
+  }
+
+  /* Custom components */
+  .hero-gradient {
+    background: var(--gradient-community);
+  }
+
+  .card-shadow {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .warm-shadow {
+    box-shadow: var(--shadow-warm);
+  }
+
+  /* Arabic font support */
+  .arabic-text {
+    font-family: 'Noto Sans Arabic', 'Arial', sans-serif;
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer components {
+  .btn-warm {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-6 py-3 font-medium transition-smooth card-shadow;
+  }
+
+  .btn-secondary-warm {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg px-6 py-3 font-medium transition-smooth;
+  }
+
+  .category-card {
+    @apply bg-card rounded-2xl p-6 card-shadow hover:warm-shadow transition-smooth cursor-pointer;
+  }
+
+  .product-card {
+    @apply bg-card rounded-xl overflow-hidden card-shadow hover:warm-shadow transition-smooth;
+  }
+}

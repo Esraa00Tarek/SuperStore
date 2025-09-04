@@ -1,0 +1,200 @@
+import { useState, useEffect } from "react";
+import { Navigation } from "@/components/Navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { MessageCircle, Star, Heart } from "lucide-react";
+import { productService } from "@/services/dataService";
+import { useProducts } from '@/hooks/useProducts';
+
+const Products = () => {
+  const { t, isRTL } = useLanguage();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { products, loading, error } = useProducts();
+  const [availableCategories, setAvailableCategories] = useState<{key: string, label: string}[]>([
+    { key: 'all', label: isRTL ? 'الكل' : 'All' },
+    { key: 'meals', label: isRTL ? 'وجبات' : 'Meals' },
+    { key: 'sweets', label: isRTL ? 'حلويات' : 'Sweets' },
+    { key: 'beverages', label: isRTL ? 'مشروبات' : 'Beverages' },
+    { key: 'appetizers', label: isRTL ? 'مقبلات' : 'Appetizers' },
+    { key: 'pastries', label: isRTL ? 'معجنات' : 'Pastries' }
+  ]);
+
+  // Load products and categories on component mount
+  useEffect(() => {
+    // const loadProducts = () => {
+    //   const allProducts = productService.getAll();
+    //   setProducts(allProducts);
+      
+    //   // Load categories from localStorage
+    //   const loadCategories = () => {
+    //     const storedCategories = localStorage.getItem('productsCategories');
+    //     if (storedCategories) {
+    //       const parsedCategories = JSON.parse(storedCategories);
+          
+    //       // Create category options from stored categories
+    //       const categoryOptions = parsedCategories.map((category: string) => ({
+    //         key: category.toLowerCase(),
+    //         label: category
+    //       }));
+          
+    //       // Always include 'All' as the first option
+    //       setAvailableCategories([
+    //         { key: 'all', label: isRTL ? 'الكل' : 'All' },
+    //         ...categoryOptions
+    //       ]);
+    //     }
+    //   };
+      
+    //   // Load initial categories
+    //   loadCategories();
+      
+    //   // Listen for changes to categories
+    //   const handleCategoryChange = (e: StorageEvent) => {
+    //     if (e.key === 'productsCategories') {
+    //       loadCategories();
+    //     }
+    //   };
+      
+    //   window.addEventListener('storage', handleCategoryChange);
+    //   return () => window.removeEventListener('storage', handleCategoryChange);
+    // };
+    
+    // loadProducts();
+    
+    // Listen for storage changes
+    // const handleStorageChange = (e: StorageEvent) => {
+    //   if (e.key === 'products') {
+    //     loadProducts();
+    //   }
+    // };
+    
+    // window.addEventListener('storage', handleStorageChange);
+    // return () => window.removeEventListener('storage', handleStorageChange);
+  }, [isRTL]);
+
+  useEffect(() => {
+    if (!loading && !error) {
+      // Load categories dynamically from products
+      const uniqueCategories = Array.from(new Set(products.map(product => product.category)));
+      const categoryOptions = uniqueCategories.map(category => ({
+        key: category.toLowerCase(),
+        label: isRTL ? t(`categories.${category}`) || category : category
+      }));
+
+      setAvailableCategories([
+        { key: 'all', label: isRTL ? 'الكل' : 'All' },
+        ...categoryOptions
+      ]);
+    }
+  }, [products, loading, error, isRTL, t]);
+
+  const filteredProducts = selectedCategory === 'all' 
+    ? products 
+    : products.filter(product => 
+        product.category && 
+        product.category.toLowerCase() === selectedCategory.toLowerCase()
+      );
+
+  const handleWhatsAppOrder = (productName: string, seller: string) => {
+    const message = isRTL 
+      ? `مرحباً، أود طلب ${productName} من ${seller}`
+      : `Hello, I would like to order ${productName} from ${seller}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleReadMore = (product) => {
+    // Implement the logic to display full product details
+    console.log('Read more about:', product);
+  };
+
+  return (
+    <div className="min-h-screen">
+      <Navigation />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <h1 className={`text-3xl md:text-4xl font-bold text-center mb-8 ${isRTL ? 'arabic-text' : ''}`}>
+          {t('nav.products')}
+        </h1>
+
+        {/* Category Filter */}
+        <div className="flex justify-center mb-6">
+          <div className="flex flex-wrap gap-2 justify-center max-w-3xl">
+            {availableCategories.map((category) => (
+              <Button
+                key={category.key}
+                variant={selectedCategory === category.key ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory(category.key)}
+                className="rounded-full"
+              >
+                {category.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.map((product) => (
+            <Card key={product.id} className="product-card overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                  <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
+                    <Star className="h-3 w-3 mr-1" />
+                    {product.rating}
+                  </Badge>
+                </div>
+                
+                <div className="p-6">
+                  <h3 className={`text-lg font-semibold mb-2 ${isRTL ? 'arabic-text text-right' : ''}`}>
+                    {product.name}
+                  </h3>
+                  <p className={`text-sm text-muted-foreground mb-3 ${isRTL ? 'arabic-text text-right' : ''}`}>
+                    {product.description}
+                  </p>
+                  <div className={`flex items-center justify-between mb-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <span className="text-lg font-bold text-primary">
+                      {product.priceValue} {product.priceCurrency}
+                    </span>
+                    <span className={`text-sm text-muted-foreground ${isRTL ? 'arabic-text' : ''}`}>
+                      {isRTL ? 'بواسطة:' : 'by'} {product.seller}
+                    </span>
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => handleWhatsAppOrder(product.name, product.seller)}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      <span className={isRTL ? 'arabic-text' : ''}>
+                        {t('product.order')}
+                      </span>
+                    </Button>
+                    <Button 
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={() => handleReadMore(product)}
+                    >
+                      <span className={isRTL ? 'arabic-text' : ''}>
+                        {t('product.readMore')}
+                      </span>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Products;
