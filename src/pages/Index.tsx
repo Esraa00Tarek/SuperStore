@@ -5,119 +5,85 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
 import { LucideIcon } from "lucide-react";
-import { ChefHat, Utensils, Cake, Sparkles, Heart, ShoppingBag } from "lucide-react";
+import { Package, Sparkles, Heart, ChefHat } from "lucide-react";
 import heroImage from "@/assets/hero-kitchen.jpg";
-import cookedMealsImage from "@/assets/cooked-meals.jpg";
-import pastriesImage from "@/assets/pastries.jpg";
-import sweetsImage from "@/assets/sweets.jpg";
+import trendingProductsImage from "@/assets/trending-products.webp";
 import handmadeCraftsImage from "@/assets/handmade-crafts.jpg";
+import { useCategories } from "@/hooks/useCategories";
 
 interface CategoryItem {
-  key: string;
-  label?: string;
+  id: string;
+  name: string;
+  type: 'products' | 'crafts';
   image: string;
   icon: LucideIcon;
   path: string;
   color: string;
-  type: 'products' | 'crafts';
 }
 
 const Index = () => {
   const { t, isRTL } = useLanguage();
-  const [categories, setCategories] = useState<CategoryItem[]>([
-    {
-      key: 'categories.meals',
-      image: cookedMealsImage,
-      icon: Utensils,
-      path: '/products?category=meals',
-      color: 'from-orange-100 to-orange-200',
-      type: 'products'
+  const { categories: productCategories, loading: productsLoading } = useCategories('products');
+  const { categories: craftCategories, loading: craftsLoading } = useCategories('crafts');
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Map category types to their respective images and icons
+  const categoryTypeConfig = {
+    products: {
+      image: trendingProductsImage,
+      icon: Package,
+      pathPrefix: '/products?category=',
+      color: 'from-blue-100 to-blue-200'
     },
-    {
-      key: 'categories.pastries',
-      image: pastriesImage,
-      icon: ChefHat,
-      path: '/products?category=pastries',
-      color: 'from-amber-100 to-amber-200',
-      type: 'products'
-    },
-    {
-      key: 'categories.sweets',
-      image: sweetsImage,
-      icon: Cake,
-      path: '/products?category=sweets',
-      color: 'from-pink-100 to-pink-200',
-      type: 'products'
-    },
-    {
-      key: 'categories.handmade',
+    crafts: {
       image: handmadeCraftsImage,
       icon: Sparkles,
-      path: '/crafts',
-      color: 'from-green-100 to-green-200',
-      type: 'crafts'
+      pathPrefix: '/crafts?category=',
+      color: 'from-purple-100 to-purple-200'
     }
-  ]);
+  };
 
-  // Load custom categories from localStorage
+  // Combine and format categories when loaded
   useEffect(() => {
-    const loadCategories = () => {
-      // Load product categories
-      const storedProductCategories = localStorage.getItem('productsCategories');
-      const storedCraftCategories = localStorage.getItem('craftsCategories');
-
-      const newCategories = [...categories];
+    if (!productsLoading && !craftsLoading) {
+      const formattedCategories = [
+        ...productCategories.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          type: 'products' as const,
+          image: categoryTypeConfig.products.image,
+          icon: categoryTypeConfig.products.icon,
+          path: `${categoryTypeConfig.products.pathPrefix}${encodeURIComponent(cat.name)}`,
+          color: categoryTypeConfig.products.color
+        })),
+        ...craftCategories.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          type: 'crafts' as const,
+          image: categoryTypeConfig.crafts.image,
+          icon: categoryTypeConfig.crafts.icon,
+          path: `${categoryTypeConfig.crafts.pathPrefix}${encodeURIComponent(cat.name)}`,
+          color: categoryTypeConfig.crafts.color
+        }))
+      ];
       
-      // Add custom product categories
-      if (storedProductCategories) {
-        const productCategories = JSON.parse(storedProductCategories);
-        productCategories.forEach((cat: string) => {
-          if (!categories.some(c => c.key === `categories.${cat}`)) {
-            newCategories.push({
-              key: `categories.${cat}`,
-              label: cat.charAt(0).toUpperCase() + cat.slice(1),
-              image: cookedMealsImage, // Default image
-              icon: ShoppingBag,
-              path: `/products?category=${cat}`,
-              color: 'from-blue-100 to-blue-200',
-              type: 'products'
-            });
-          }
-        });
-      }
+      setCategories(formattedCategories);
+      setLoading(false);
+    }
+  }, [productCategories, craftCategories, productsLoading, craftsLoading]);
 
-      // Add custom craft categories
-      if (storedCraftCategories) {
-        const craftCategories = JSON.parse(storedCraftCategories);
-        craftCategories.forEach((cat: string) => {
-          if (!categories.some(c => c.key === `categories.${cat}`)) {
-            newCategories.push({
-              key: `categories.${cat}`,
-              label: cat.charAt(0).toUpperCase() + cat.slice(1),
-              image: handmadeCraftsImage, // Default image
-              icon: ShoppingBag,
-              path: `/crafts?category=${cat}`,
-              color: 'from-purple-100 to-purple-200',
-              type: 'crafts'
-            });
-          }
-        });
-      }
-
-      setCategories(newCategories);
-    };
-
-    // Load categories on mount
-    loadCategories();
-
-    // Listen for storage changes
-    const handleStorageChange = () => {
-      loadCategories();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [isRTL]);
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg">Loading categories...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -155,32 +121,39 @@ const Index = () => {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map((category) => {
-              const IconComponent = category.icon;
-              const displayLabel = category.label || t(category.key);
-              return (
-                <Link key={category.key} to={category.path}>
-                  <Card className="category-card group hover:scale-105 transition-all duration-300">
-                    <CardContent className="p-0">
-                      <div className="relative h-48 overflow-hidden rounded-t-2xl">
-                        <img 
-                          src={category.image} 
-                          alt={displayLabel}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                        <div className={`absolute inset-0 bg-gradient-to-t ${category.color} opacity-20`}></div>
-                      </div>
-                      <div className="p-6 text-center">
-                        <IconComponent className="h-8 w-8 text-primary mx-auto mb-3" />
-                        <h3 className={`text-lg font-semibold ${isRTL ? 'arabic-text' : ''}`}>
-                          {displayLabel}
-                        </h3>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
+            {categories.length > 0 ? (
+              categories.map((category) => {
+                const IconComponent = category.icon;
+                return (
+                  <Link key={category.id} to={category.path}>
+                    <Card className="category-card group hover:scale-105 transition-all duration-300 h-full">
+                      <CardContent className="p-0 h-full flex flex-col">
+                        <div className="relative h-48 overflow-hidden rounded-t-2xl">
+                          <img 
+                            src={category.image} 
+                            alt={category.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                          <div className={`absolute inset-0 bg-gradient-to-t ${category.color} opacity-20`}></div>
+                        </div>
+                        <div className="p-6 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-2">
+                            <IconComponent className="h-10 w-10 text-primary" />
+                            <h3 className={`text-lg font-semibold ${isRTL ? 'arabic-text' : ''}`}>
+                              {category.name}
+                            </h3>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <p className="text-gray-500">No categories found. Please add some categories from the admin panel.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
